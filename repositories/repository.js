@@ -8,7 +8,6 @@ module.exports = class Repository {
 		}
 
 		this.filename = filename;
-
 		try {
 			fs.accessSync(this.filename);
 		} catch (err) {
@@ -18,11 +17,14 @@ module.exports = class Repository {
 
 	async create(attrs) {
 		attrs.id = this.randomId();
+
 		const records = await this.getAll();
 		records.push(attrs);
 		await this.writeAll(records);
+
 		return attrs;
 	}
+
 	async getAll() {
 		return JSON.parse(
 			await fs.promises.readFile(this.filename, {
@@ -34,6 +36,7 @@ module.exports = class Repository {
 	async writeAll(records) {
 		await fs.promises.writeFile(this.filename, JSON.stringify(records, null, 2));
 	}
+
 	randomId() {
 		return crypto.randomBytes(4).toString('hex');
 	}
@@ -52,22 +55,27 @@ module.exports = class Repository {
 	async update(id, attrs) {
 		const records = await this.getAll();
 		const record = records.find((record) => record.id === id);
+
 		if (!record) {
-			throw new Error('Record with the ${id} not found');
+			throw new Error(`Record with id ${id} not found`);
 		}
 
 		Object.assign(record, attrs);
 		await this.writeAll(records);
 	}
+
 	async getOneBy(filters) {
 		const records = await this.getAll();
+
 		for (let record of records) {
 			let found = true;
+
 			for (let key in filters) {
 				if (record[key] !== filters[key]) {
 					found = false;
 				}
 			}
+
 			if (found) {
 				return record;
 			}
